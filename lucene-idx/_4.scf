@@ -1,0 +1,240 @@
+cfs entry for: _4.fld
+doc 0
+  field 0
+    name titolo
+    type string
+    value Come diventare un ingegnere dei dati, Data Engineer?
+  field 1
+    name contenuto
+    type string
+    value Sembra che oggigiorno tutti vogliano diventare un Data Scientist  ...
+  field 2
+    name data
+    type string
+    value 12 ottobre 2016
+doc 1
+  field 0
+    name titolo
+    type string
+    value Curriculum Ingegneria dei Dati - Sezione di Informatica e Automazione
+  field 1
+    name contenuto
+    type string
+    value Curriculum. Ingegneria dei Dati. Laurea Magistrale in Ingegneria Informatica ...
+END
+checksum 00000000000996139249
+cfs entry for: _4.inf
+number of fields 3
+  name titolo
+  number 0
+  index options DOCS_AND_FREQS_AND_POSITIONS
+  term vectors false
+  payloads false
+  norms true
+  doc values NONE
+  doc values gen -1
+  attributes 0
+  data dimensional count 0
+  index dimensional count 0
+  dimensional num bytes 0
+  soft-deletes false
+  name contenuto
+  number 1
+  index options DOCS_AND_FREQS_AND_POSITIONS
+  term vectors false
+  payloads false
+  norms true
+  doc values NONE
+  doc values gen -1
+  attributes 0
+  data dimensional count 0
+  index dimensional count 0
+  dimensional num bytes 0
+  soft-deletes false
+  name data
+  number 2
+  index options DOCS
+  term vectors false
+  payloads false
+  norms false
+  doc values NONE
+  doc values gen -1
+  attributes 0
+  data dimensional count 0
+  index dimensional count 0
+  dimensional num bytes 0
+  soft-deletes false
+checksum 00000000002816754990
+cfs entry for: _4.len
+field titolo
+  type NUMERIC
+  minvalue 8
+  pattern 0
+0
+T
+2
+T
+field contenuto
+  type NUMERIC
+  minvalue 7
+  pattern 0
+2
+T
+0
+T
+END
+checksum 00000000001204077228
+cfs entry for: _4.pst
+field contenuto
+  term che
+    doc 0
+      freq 1
+      pos 1
+  term curriculum
+    doc 1
+      freq 1
+      pos 0
+  term data
+    doc 0
+      freq 1
+      pos 7
+  term dati
+    doc 1
+      freq 1
+      pos 3
+  term diventare
+    doc 0
+      freq 1
+      pos 5
+  term informatica
+    doc 1
+      freq 1
+      pos 8
+  term ingegneria
+    doc 1
+      freq 2
+      pos 1
+      pos 7
+  term laurea
+    doc 1
+      freq 1
+      pos 4
+  term magistrale
+    doc 1
+      freq 1
+      pos 5
+  term oggigiorno
+    doc 0
+      freq 1
+      pos 2
+  term scientist
+    doc 0
+      freq 1
+      pos 8
+  term sembra
+    doc 0
+      freq 1
+      pos 0
+  term tutti
+    doc 0
+      freq 1
+      pos 3
+  term un
+    doc 0
+      freq 1
+      pos 6
+  term vogliano
+    doc 0
+      freq 1
+      pos 4
+field data
+  term 12 ottobre 2016
+    doc 0
+field titolo
+  term -
+    doc 1
+      freq 1
+      pos 4
+  term Automazione
+    doc 1
+      freq 1
+      pos 9
+  term Come
+    doc 0
+      freq 1
+      pos 0
+  term Curriculum
+    doc 1
+      freq 1
+      pos 0
+  term Data
+    doc 0
+      freq 1
+      pos 6
+  term Dati
+    doc 1
+      freq 1
+      pos 3
+  term Engineer?
+    doc 0
+      freq 1
+      pos 7
+  term Informatica
+    doc 1
+      freq 1
+      pos 7
+  term Ingegneria
+    doc 1
+      freq 1
+      pos 1
+  term Sezione
+    doc 1
+      freq 1
+      pos 5
+  term dati,
+    doc 0
+      freq 1
+      pos 5
+  term dei
+    doc 0
+      freq 1
+      pos 4
+    doc 1
+      freq 1
+      pos 2
+  term di
+    doc 1
+      freq 1
+      pos 6
+  term diventare
+    doc 0
+      freq 1
+      pos 1
+  term e
+    doc 1
+      freq 1
+      pos 8
+  term ingegnere
+    doc 0
+      freq 1
+      pos 3
+  term un
+    doc 0
+      freq 1
+      pos 2
+END
+checksum 00000000002294233809
+table of contents, size: 4
+  filename: _4.fld
+    start: 22
+    end: 622
+  filename: _4.inf
+    start: 644
+    end: 1499
+  filename: _4.len
+    start: 1521
+    end: 1680
+  filename: _4.pst
+    start: 1702
+    end: 3441
+table of contents begins at offset: 0000000000000003441
