@@ -30,7 +30,7 @@ public class lucenex {
             Indexer indexer = new Indexer(idxPath);
             indexer.indexHtmlDocs(docsDir);
             indexer.commitAndClose();
-            System.out.println("Indicizzazione completata.");
+            System.out.println("Completed indexing.");
         } catch (IOException e) {
             e.printStackTrace();
         }

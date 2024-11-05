@@ -35,7 +35,7 @@ public class Indexer {
         perFieldAnalyzers.put("title",whiteLowerAnalyzer);
         perFieldAnalyzers.put("authors",whiteLowerAnalyzer);
         perFieldAnalyzers.put("abstract",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("fullPaper",new EnglishAnalyzer());
+        perFieldAnalyzers.put("fullPaper",new StandardAnalyzer());
         Analyzer perFieldAnalyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(),
                 perFieldAnalyzers);
         IndexWriterConfig config = new IndexWriterConfig(perFieldAnalyzer);
@@ -52,7 +52,7 @@ public class Indexer {
     public void indexHtmlDocs(String docsDir) throws IOException {
         File[] files = new File(docsDir).listFiles();
         if (files == null) {
-            System.out.println("Empyt or not found directory: " + docsDir);
+            System.out.println("Empty or not found directory: " + docsDir);
             return;
         }
 
@@ -104,7 +104,7 @@ public class Indexer {
         String text = "";
         for (Element element : elements) {
             if (element != null) {
-                text = text.concat(element.text());
+                text = text.concat(" " + element.text());
             }
         }
         return text;
