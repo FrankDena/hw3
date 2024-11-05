@@ -20,7 +20,7 @@ import org.apache.lucene.codecs.simpletext.SimpleTextCodec;
 
 //import class Indexer;
 
-public class lucenex {
+public class Lucenex {
     public static void main(String[] args) throws IOException {
         Path projectDir = Paths.get("").toAbsolutePath();
         Path idxPath = projectDir.resolve("lucene-idx");
@@ -32,6 +32,13 @@ public class lucenex {
             indexer.commitAndClose();
             System.out.println("Completed indexing.");
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            Oracle oracle = new Oracle(idxPath);
+            oracle.executeUserQuery();
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
