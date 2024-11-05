@@ -1,44 +1,39 @@
-import java.util.Scanner;
-
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
-import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.*;
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
-import org.apache.lucene.search.similarities.BM25Similarity;
-import org.apache.lucene.search.similarities.ClassicSimilarity;
-import org.apache.lucene.search.similarities.LMJelinekMercerSimilarity;
-import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.codecs.simpletext.SimpleTextCodec;
 
+//import class Indexer;
 
 public class lucenex {
     public static void main(String[] args) throws IOException {
-        // Prints "Hello, World" in the terminal window.
         Path projectDir = Paths.get("").toAbsolutePath();
-        Path path = projectDir.resolve("lucene-idx");
-        matchAllDocs(path);
-
+        Path idxPath = projectDir.resolve("lucene-idx");
+        String docsDir = "html";
+        //matchAllDocs(idxPath);
+        try {
+            Indexer indexer = new Indexer(idxPath);
+            indexer.indexHtmlDocs(docsDir);
+            indexer.commitAndClose();
+            System.out.println("Indicizzazione completata.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void matchAllDocs(Path path) throws IOException {
@@ -61,6 +56,7 @@ public class lucenex {
         StandardAnalyzer analyzer = new StandardAnalyzer();
         TopDocs hits = searcher.search(query, 10);
 
+
         // 6. Gestisci i risultati
         System.out.println("Risultati trovati: " + hits.totalHits.value);
 
@@ -69,6 +65,12 @@ public class lucenex {
             System.out.println("Documento trovato: " + document.get("contenuto"));
         }
 
+
+    }
+
+    private static void indexHTMLDocs(Directory directory, Codec codec) throws IOException {
+        IndexWriterConfig config = new IndexWriterConfig(new StandardAnalyzer());
+        IndexWriter writer = new IndexWriter(directory, config);
 
     }
 
