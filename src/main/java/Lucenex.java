@@ -28,7 +28,7 @@ public class Lucenex {
         //matchAllDocs(idxPath);
         try {
             Indexer indexer = new Indexer(idxPath);
-            indexer.indexHtmlDocs(docsDir);
+            indexer.retrieveHtmlDocs(docsDir);
             indexer.commitAndClose();
             System.out.println("Completed indexing.\n\n");
         } catch (IOException e) {

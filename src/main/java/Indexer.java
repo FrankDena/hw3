@@ -1,6 +1,5 @@
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilterFactory;
 import org.apache.lucene.codecs.simpletext.SimpleTextCodec;
@@ -49,7 +48,7 @@ public class Indexer {
         writer.commit();
         writer.close();
     }
-    public void indexHtmlDocs(String docsDir) throws IOException {
+    public void retrieveHtmlDocs(String docsDir) throws IOException {
         File[] files = new File(docsDir).listFiles();
         if (files == null) {
             System.out.println("Empty or not found directory: " + docsDir);
