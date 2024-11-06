@@ -1,6 +1,8 @@
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,13 +26,16 @@ public class Lucenex {
     public static void main(String[] args) throws IOException {
         Path projectDir = Paths.get("").toAbsolutePath();
         Path idxPath = projectDir.resolve("lucene-idx");
-        String docsDir = "html";
+        String docsDir = "all_htmls";
         //matchAllDocs(idxPath);
         try {
             Indexer indexer = new Indexer(idxPath);
+            Instant startIndexingTime = Instant.now();
             indexer.retrieveHtmlDocs(docsDir);
+            Instant endIndexingTime = Instant.now();
             indexer.commitAndClose();
-            System.out.println("Completed indexing.\n\n");
+            System.out.println("Completed indexing.");
+            System.out.println("Indexing took: " + Duration.between(startIndexingTime,endIndexingTime).toSeconds() + " seconds\n\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
