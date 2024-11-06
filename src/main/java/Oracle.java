@@ -263,11 +263,16 @@ public class Oracle {
                 System.out.println("Abstract: " + document.get("abstract") + "\n");
                 System.out.println("Full paper: " + document.get("fullPaper") + "\n");
             }
-            reader.close();
-            dir.close();
+            //reader.close();
+            //dir.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void closeDirAndReader () throws IOException {
+        this.reader.close();
+        this.dir.close();
     }
 
 }
