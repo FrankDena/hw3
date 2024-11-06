@@ -62,9 +62,23 @@ public class Oracle {
     }
 
     public void executeUserQuery() throws ParseException, IOException {
+        int numOfResults = 10; //default is 10 results per search
         while(true) {
             int option;
             scanner = new Scanner(System.in);
+            System.out.println("Choose the number of results you want to see at most: ");
+            if (scanner.hasNextInt()) {
+                int input = scanner.nextInt();
+                if (input!=0) {
+                    numOfResults = input;
+                } else {
+                    System.out.println("The integer must be greater than 0!\n");
+                    continue;
+                }
+            } else {
+                System.out.println("Insert an integer please!\n");
+                continue;
+            }
             System.out.println("Choose an option to run a query:\n" +
                     "[0] Run a general query, not on a specific field;\n" +
                     "[1] Run a query on the TITLE of the documents;\n" +
@@ -76,15 +90,15 @@ public class Oracle {
             if (scanner.hasNextInt()) {
                 option = scanner.nextInt();
                 if(option == 0)
-                    executeGeneralQuery();
+                    executeGeneralQuery(numOfResults);
                 if(option == 1)
-                    executeTitleQuery();
+                    executeTitleQuery(numOfResults);
                 if(option == 2)
-                    executeAuthorsQuery();
+                    executeAuthorsQuery(numOfResults);
                 if(option == 3)
-                    executeAbstractQuery();
+                    executeAbstractQuery(numOfResults);
                 if(option == 4)
-                    executeFullPaperQuery();
+                    executeFullPaperQuery(numOfResults);
                 if(option == 5)
                     break;
             } else {
@@ -93,7 +107,7 @@ public class Oracle {
         }
     }
 
-    private void executeFullPaperQuery() {
+    private void executeFullPaperQuery(int numOfResults) {
         try {
 
             whiteLowerAnalyzer = CustomAnalyzer.builder()
@@ -112,7 +126,7 @@ public class Oracle {
             Query query = p.parse(userInput);
 
             //Retrieve the result documents
-            TopDocs hits = this.searcher.search(query, 10);
+            TopDocs hits = this.searcher.search(query, numOfResults);
             System.out.println("Found results: " + hits.totalHits.value);
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
@@ -128,7 +142,7 @@ public class Oracle {
         }
     }
 
-    private void executeAbstractQuery() {
+    private void executeAbstractQuery(int numOfResults) {
         try {
 
             whiteLowerAnalyzer = CustomAnalyzer.builder()
@@ -147,7 +161,7 @@ public class Oracle {
             Query query = p.parse(userInput);
 
             //Retrieve the result documents
-            TopDocs hits = this.searcher.search(query, 10);
+            TopDocs hits = this.searcher.search(query, numOfResults);
             System.out.println("Found results: " + hits.totalHits.value);
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
@@ -164,7 +178,7 @@ public class Oracle {
         }
     }
 
-    private void executeAuthorsQuery() {
+    private void executeAuthorsQuery(int numOfResults) {
         try {
 
             whiteLowerAnalyzer = CustomAnalyzer.builder()
@@ -183,7 +197,7 @@ public class Oracle {
             Query query = p.parse(userInput);
 
             //Retrieve the result documents
-            TopDocs hits = this.searcher.search(query, 10);
+            TopDocs hits = this.searcher.search(query, numOfResults);
             System.out.println("Found results: " + hits.totalHits.value);
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
@@ -200,7 +214,7 @@ public class Oracle {
         }
     }
 
-    private void executeTitleQuery() throws IOException{
+    private void executeTitleQuery(int numOfResults) throws IOException{
         try {
 
             whiteLowerAnalyzer = CustomAnalyzer.builder()
@@ -219,7 +233,7 @@ public class Oracle {
             Query query = p.parse(userInput);
 
             //Retrieve the result documents
-            TopDocs hits = this.searcher.search(query, 10);
+            TopDocs hits = this.searcher.search(query, numOfResults);
             System.out.println("Found results: " + hits.totalHits.value);
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
@@ -236,7 +250,7 @@ public class Oracle {
         }
     }
 
-    private void executeGeneralQuery() throws ParseException, IOException {
+    private void executeGeneralQuery(int numOfResults) throws ParseException, IOException {
         weights.put("title", 1.0f);
         weights.put("authors", 0.8f);
         weights.put("abstract", 0.6f);
@@ -248,7 +262,7 @@ public class Oracle {
             String userInput = scanner.nextLine(); // Read the user query
 
             Query query = this.parser.parse(userInput);
-            TopDocs hits = this.searcher.search(query, 10);
+            TopDocs hits = this.searcher.search(query, numOfResults);
 
             System.out.println("Found results: " + hits.totalHits.value);
             if(hits.totalHits.value == 0){
