@@ -63,6 +63,11 @@ public class Oracle {
 
     public void executeUserQuery() throws ParseException, IOException {
         int numOfResults = 10; //default is 10 results per search
+        System.out.println("Rules of the search engine: \n");
+        System.out.println("+word: word is mandatory");
+        System.out.println("-word: word is prohibited");
+        System.out.println("word: word is optional");
+        System.out.println("\"phrase\": phrase query\n");
         while(true) {
             int option;
             scanner = new Scanner(System.in);
