@@ -83,7 +83,7 @@ public class Indexer {
             luceneDoc.add(new TextField("title", title, Field.Store.YES));
             luceneDoc.add(new TextField("authors", authors, Field.Store.YES));
             luceneDoc.add(new TextField("abstract", abstractText, Field.Store.YES));
-            luceneDoc.add(new TextField("fullPaper", fullPaper, Field.Store.YES));
+            luceneDoc.add(new TextField("fullPaper", fullPaper, Field.Store.NO));
 
             // Indexing new document
             writer.addDocument(luceneDoc);

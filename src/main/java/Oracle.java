@@ -18,6 +18,8 @@ import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -63,6 +65,8 @@ public class Oracle {
 
     public void executeUserQuery() throws ParseException, IOException {
         int numOfResults = 10; //default is 10 results per search
+        long queriesMade = 0;
+        Duration totalTime = Duration.ZERO;
         System.out.println("Rules of the search engine: \n");
         System.out.println("+word: word is mandatory");
         System.out.println("-word: word is prohibited");
@@ -94,17 +98,38 @@ public class Oracle {
             System.out.println("Choice: ");
             if (scanner.hasNextInt()) {
                 option = scanner.nextInt();
-                if(option == 0)
+                if(option == 0) {
+                    queriesMade = queriesMade + 1;
                     executeGeneralQuery(numOfResults);
-                if(option == 1)
+                    totalTime = totalTime.plus(executeGeneralQuery(numOfResults));
+                }
+                if(option == 1) {
+                    queriesMade = queriesMade + 1;
                     executeTitleQuery(numOfResults);
-                if(option == 2)
+                    totalTime = totalTime.plus(executeTitleQuery(numOfResults));
+                }
+                if(option == 2) {
+                    queriesMade = queriesMade + 1;
                     executeAuthorsQuery(numOfResults);
-                if(option == 3)
+                    totalTime = totalTime.plus(executeAuthorsQuery(numOfResults));
+                }
+                if(option == 3) {
+                    queriesMade = queriesMade + 1;
                     executeAbstractQuery(numOfResults);
-                if(option == 4)
-                    executeFullPaperQuery(numOfResults);
+                    totalTime = totalTime.plus(executeAbstractQuery(numOfResults));
+                }
+                if(option == 4) {
+                    queriesMade = queriesMade + 1;
+                    totalTime = totalTime.plus(executeFullPaperQuery(numOfResults));
+                }
                 if(option == 5)
+                    if(queriesMade != 0) {
+                        System.out.println("Total elapsed time since the beginning of the search session: " + totalTime.toSeconds() + " seconds\n" +
+                                "Mean research elapsed time: " + totalTime.dividedBy(queriesMade).toMinutes() + " minutes and " + totalTime.dividedBy(queriesMade).toSeconds() + " seconds\n\n");
+                        break;
+                    } else {
+                        System.out.println("You've successfully exited the search system");
+                    }
                     break;
             } else {
                 System.out.println("Insert an integer please!\n");
@@ -112,7 +137,8 @@ public class Oracle {
         }
     }
 
-    private void executeFullPaperQuery(int numOfResults) {
+    private Duration executeFullPaperQuery(int numOfResults) {
+        Duration elapsedTime1 = Duration.ZERO;
         try {
 
             whiteLowerAnalyzer = CustomAnalyzer.builder()
@@ -131,8 +157,12 @@ public class Oracle {
             Query query = p.parse(userInput);
 
             //Retrieve the result documents
+            Instant startQueryTime = Instant.now();
             TopDocs hits = this.searcher.search(query, numOfResults);
-            System.out.println("Found results: " + hits.totalHits.value);
+            Instant endQueryTime = Instant.now();
+            elapsedTime1 = Duration.between(startQueryTime, endQueryTime);
+            System.out.println("Found results: " + hits.totalHits.value + "\n" +
+                                "Elapsed time for the query: " + elapsedTime1.toSeconds() + " seconds\n\n");
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
             }
@@ -140,14 +170,16 @@ public class Oracle {
             //Print the results
             for (ScoreDoc scoreDoc : hits.scoreDocs) {
                 Document document = this.searcher.doc(scoreDoc.doc);
-                System.out.println("Full paper: " + document.get("fullPaper") + "\n");
+                System.out.println("Title of the paper in which body the query matched: " + document.get("title") + "\n");
             }
         } catch(Exception e) {
             e.printStackTrace();
         }
+        return elapsedTime1;
     }
 
-    private void executeAbstractQuery(int numOfResults) {
+    private Duration executeAbstractQuery(int numOfResults) {
+        Duration elapsedTime2 = Duration.ZERO;
         try {
 
             whiteLowerAnalyzer = CustomAnalyzer.builder()
@@ -166,8 +198,12 @@ public class Oracle {
             Query query = p.parse(userInput);
 
             //Retrieve the result documents
+            Instant startQueryTime = Instant.now();
             TopDocs hits = this.searcher.search(query, numOfResults);
-            System.out.println("Found results: " + hits.totalHits.value);
+            Instant endQueryTime = Instant.now();
+            elapsedTime2 = Duration.between(startQueryTime, endQueryTime);
+            System.out.println("Found results: " + hits.totalHits.value + "\n" +
+                    "Elapsed time for the query: " + elapsedTime2.toSeconds() + " seconds\n\n");
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
             }
@@ -181,9 +217,11 @@ public class Oracle {
         } catch(Exception e) {
             e.printStackTrace();
         }
+        return elapsedTime2;
     }
 
-    private void executeAuthorsQuery(int numOfResults) {
+    private Duration executeAuthorsQuery(int numOfResults) {
+        Duration elapsedTime3 = Duration.ZERO;
         try {
 
             whiteLowerAnalyzer = CustomAnalyzer.builder()
@@ -202,8 +240,12 @@ public class Oracle {
             Query query = p.parse(userInput);
 
             //Retrieve the result documents
+            Instant startQueryTime = Instant.now();
             TopDocs hits = this.searcher.search(query, numOfResults);
-            System.out.println("Found results: " + hits.totalHits.value);
+            Instant endQueryTime = Instant.now();
+            elapsedTime3 = Duration.between(startQueryTime, endQueryTime);
+            System.out.println("Found results: " + hits.totalHits.value + "\n" +
+                    "Elapsed time for the query: " + elapsedTime3.toSeconds() + " seconds\n\n");
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
             }
@@ -217,9 +259,11 @@ public class Oracle {
         } catch(Exception e) {
             e.printStackTrace();
         }
+        return elapsedTime3;
     }
 
-    private void executeTitleQuery(int numOfResults) throws IOException{
+    private Duration executeTitleQuery(int numOfResults) throws IOException{
+        Duration elapsedTime4 = Duration.ZERO;
         try {
 
             whiteLowerAnalyzer = CustomAnalyzer.builder()
@@ -238,8 +282,12 @@ public class Oracle {
             Query query = p.parse(userInput);
 
             //Retrieve the result documents
+            Instant startQueryTime = Instant.now();
             TopDocs hits = this.searcher.search(query, numOfResults);
-            System.out.println("Found results: " + hits.totalHits.value);
+            Instant endQueryTime = Instant.now();
+            elapsedTime4 = Duration.between(startQueryTime, endQueryTime);
+            System.out.println("Found results: " + hits.totalHits.value + "\n" +
+                    "Elapsed time for the query: " + elapsedTime4.toSeconds() + " seconds\n\n");
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
             }
@@ -253,9 +301,11 @@ public class Oracle {
         } catch(Exception e) {
             e.printStackTrace();
         }
+        return elapsedTime4;
     }
 
-    private void executeGeneralQuery(int numOfResults) throws ParseException, IOException {
+    private Duration executeGeneralQuery(int numOfResults) throws ParseException, IOException {
+        Duration elapsedTime5 = Duration.ZERO;
         weights.put("title", 1.0f);
         weights.put("authors", 0.8f);
         weights.put("abstract", 0.6f);
@@ -267,9 +317,13 @@ public class Oracle {
             String userInput = scanner.nextLine(); // Read the user query
 
             Query query = this.parser.parse(userInput);
-            TopDocs hits = this.searcher.search(query, numOfResults);
 
-            System.out.println("Found results: " + hits.totalHits.value);
+            Instant startQueryTime = Instant.now();
+            TopDocs hits = this.searcher.search(query, numOfResults);
+            Instant endQueryTime = Instant.now();
+            elapsedTime5 = Duration.between(startQueryTime, endQueryTime);
+            System.out.println("Found results: " + hits.totalHits.value + "\n" +
+                    "Elapsed time for the query: " + elapsedTime5.toSeconds() + " seconds\n\n");
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
             }
@@ -287,6 +341,7 @@ public class Oracle {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return elapsedTime5;
     }
 
     public void closeDirAndReader () throws IOException {

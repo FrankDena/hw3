@@ -33,9 +33,10 @@ public class Lucenex {
             Instant startIndexingTime = Instant.now();
             indexer.retrieveHtmlDocs(docsDir);
             Instant endIndexingTime = Instant.now();
+            Duration elapsedTime = Duration.between(startIndexingTime,endIndexingTime);
             indexer.commitAndClose();
             System.out.println("Completed indexing.");
-            System.out.println("Indexing took: " + Duration.between(startIndexingTime,endIndexingTime).toSeconds() + " seconds\n\n");
+            System.out.println("Indexing took: " + elapsedTime.toSeconds() + " seconds\n\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
