@@ -120,7 +120,7 @@ public class Oracle {
                 }
                 if(option == 5) {
                     if (queriesMade != 0) {
-                        System.out.println("Total search time : " + totalTime.toMillis()+ " milliseconds\n" +
+                        System.out.println("\nTotal search time : " + totalTime.toMillis()+ " milliseconds\n" +
                                 "Number of queries: " + queriesMade + "\n" +
                                 "Mean search time: " + totalTime.dividedBy(queriesMade).toMillis() + " milliseconds\n\n");
                         break;
@@ -210,6 +210,7 @@ public class Oracle {
             //Print the results
             for (ScoreDoc scoreDoc : hits.scoreDocs) {
                 Document document = this.searcher.doc(scoreDoc.doc);
+                System.out.println("Title: " + document.get("title") + "\n");
                 System.out.println("Abstract: " + document.get("abstract") + "\n");
             }
         } catch(Exception e) {
@@ -252,6 +253,7 @@ public class Oracle {
             //Print the results
             for (ScoreDoc scoreDoc : hits.scoreDocs) {
                 Document document = this.searcher.doc(scoreDoc.doc);
+                System.out.println("Title: " + document.get("title") + "\n");
                 System.out.println("Authors: " + document.get("authors") + "\n");
             }
         } catch(Exception e) {
@@ -332,7 +334,6 @@ public class Oracle {
                 System.out.println("Title: " + document.get("title") + "\n");
                 System.out.println("Authors: " + document.get("authors") + "\n");
                 System.out.println("Abstract: " + document.get("abstract") + "\n");
-                System.out.println("Full paper: " + document.get("fullPaper") + "\n");
             }
             //reader.close();
             //dir.close();

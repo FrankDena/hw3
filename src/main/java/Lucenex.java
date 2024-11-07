@@ -28,6 +28,7 @@ public class Lucenex {
         Path idxPath = projectDir.resolve("lucene-idx");
         String docsDir = "all_htmls";
         //matchAllDocs(idxPath);
+        /*
         try {
             Indexer indexer = new Indexer(idxPath);
             Instant startIndexingTime = Instant.now();
@@ -40,6 +41,7 @@ public class Lucenex {
         } catch (IOException e) {
             e.printStackTrace();
         }
+         */
         try {
             Oracle oracle = new Oracle(idxPath);
             oracle.executeUserQuery();
