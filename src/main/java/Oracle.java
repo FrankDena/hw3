@@ -100,37 +100,35 @@ public class Oracle {
                 option = scanner.nextInt();
                 if(option == 0) {
                     queriesMade = queriesMade + 1;
-                    executeGeneralQuery(numOfResults);
                     totalTime = totalTime.plus(executeGeneralQuery(numOfResults));
                 }
                 if(option == 1) {
                     queriesMade = queriesMade + 1;
-                    executeTitleQuery(numOfResults);
                     totalTime = totalTime.plus(executeTitleQuery(numOfResults));
                 }
                 if(option == 2) {
                     queriesMade = queriesMade + 1;
-                    executeAuthorsQuery(numOfResults);
                     totalTime = totalTime.plus(executeAuthorsQuery(numOfResults));
                 }
                 if(option == 3) {
                     queriesMade = queriesMade + 1;
-                    executeAbstractQuery(numOfResults);
                     totalTime = totalTime.plus(executeAbstractQuery(numOfResults));
                 }
                 if(option == 4) {
                     queriesMade = queriesMade + 1;
                     totalTime = totalTime.plus(executeFullPaperQuery(numOfResults));
                 }
-                if(option == 5)
-                    if(queriesMade != 0) {
-                        System.out.println("Total elapsed time since the beginning of the search session: " + totalTime.toSeconds() + " seconds\n" +
-                                "Mean research elapsed time: " + totalTime.dividedBy(queriesMade).toMinutes() + " minutes and " + totalTime.dividedBy(queriesMade).toSeconds() + " seconds\n\n");
+                if(option == 5) {
+                    if (queriesMade != 0) {
+                        System.out.println("Total search time : " + totalTime.toMillis()+ " milliseconds\n" +
+                                "Number of queries: " + queriesMade + "\n" +
+                                "Mean search time: " + totalTime.dividedBy(queriesMade).toMillis() + " milliseconds\n\n");
                         break;
                     } else {
                         System.out.println("You've successfully exited the search system");
                     }
                     break;
+                }
             } else {
                 System.out.println("Insert an integer please!\n");
             }
@@ -162,7 +160,7 @@ public class Oracle {
             Instant endQueryTime = Instant.now();
             elapsedTime1 = Duration.between(startQueryTime, endQueryTime);
             System.out.println("Found results: " + hits.totalHits.value + "\n" +
-                                "Elapsed time for the query: " + elapsedTime1.toSeconds() + " seconds\n\n");
+                                "Elapsed time for the query: " + elapsedTime1.toMillis() + " milliseconds\n\n");
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
             }
@@ -203,7 +201,7 @@ public class Oracle {
             Instant endQueryTime = Instant.now();
             elapsedTime2 = Duration.between(startQueryTime, endQueryTime);
             System.out.println("Found results: " + hits.totalHits.value + "\n" +
-                    "Elapsed time for the query: " + elapsedTime2.toSeconds() + " seconds\n\n");
+                    "Elapsed time for the query: " + elapsedTime2.toMillis() + " milliseconds\n\n");
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
             }
@@ -245,7 +243,7 @@ public class Oracle {
             Instant endQueryTime = Instant.now();
             elapsedTime3 = Duration.between(startQueryTime, endQueryTime);
             System.out.println("Found results: " + hits.totalHits.value + "\n" +
-                    "Elapsed time for the query: " + elapsedTime3.toSeconds() + " seconds\n\n");
+                    "Elapsed time for the query: " + elapsedTime3.toMillis() + " milliseconds\n\n");
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
             }
@@ -287,7 +285,7 @@ public class Oracle {
             Instant endQueryTime = Instant.now();
             elapsedTime4 = Duration.between(startQueryTime, endQueryTime);
             System.out.println("Found results: " + hits.totalHits.value + "\n" +
-                    "Elapsed time for the query: " + elapsedTime4.toSeconds() + " seconds\n\n");
+                    "Elapsed time for the query: " + elapsedTime4.toMillis() + " milliseconds\n\n");
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
             }
@@ -323,7 +321,7 @@ public class Oracle {
             Instant endQueryTime = Instant.now();
             elapsedTime5 = Duration.between(startQueryTime, endQueryTime);
             System.out.println("Found results: " + hits.totalHits.value + "\n" +
-                    "Elapsed time for the query: " + elapsedTime5.toSeconds() + " seconds\n\n");
+                    "Elapsed time for the query: " + elapsedTime5.toMillis() + " milliseconds\n\n");
             if(hits.totalHits.value == 0){
                 System.out.println("Results not found!\n");
             }
