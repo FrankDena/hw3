@@ -100,13 +100,12 @@ public class Indexer {
 
     private String extractAllPaper(org.jsoup.nodes.Document htmlDoc, String selector) {
         Elements elements = htmlDoc.select(selector);
-        String text = "";
+        StringBuilder textBuilder = new StringBuilder();
         for (Element element : elements) {
-            if (element != null) {
-                text = text.concat(" " + element.text());
-            }
+            textBuilder.append(element.text()).append(" ");
         }
-        return text;
+
+        return textBuilder.toString().trim();
     }
 
     private String extractAbstract(org.jsoup.nodes.Document htmlDoc, String selector) {
