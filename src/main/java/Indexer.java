@@ -15,11 +15,18 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import java.util.Iterator;
+
 
 public class Indexer {
     private IndexWriter writer;
@@ -31,16 +38,16 @@ public class Indexer {
                 .addTokenFilter(WordDelimiterGraphFilterFactory.class)
                 .build();
         Map<String,Analyzer> perFieldAnalyzers = new HashMap<>();
-        perFieldAnalyzers.put("title",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("authors",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("abstract",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("fullPaper",new StandardAnalyzer());
+        perFieldAnalyzers.put("caption",whiteLowerAnalyzer);
+        perFieldAnalyzers.put("table",whiteLowerAnalyzer);
+        perFieldAnalyzers.put("references",whiteLowerAnalyzer);
+        perFieldAnalyzers.put("footnotes",whiteLowerAnalyzer);
         Analyzer perFieldAnalyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(),
                 perFieldAnalyzers);
         IndexWriterConfig config = new IndexWriterConfig(perFieldAnalyzer);
         writer = new IndexWriter(dir, config);
-        //SimpleTextCodec codec = new SimpleTextCodec();
-        //config.setCodec(codec);
+        SimpleTextCodec codec = new SimpleTextCodec();
+        config.setCodec(codec);
         writer.deleteAll();
     }
 
@@ -48,7 +55,7 @@ public class Indexer {
         writer.commit();
         writer.close();
     }
-    public void retrieveHtmlDocs(String docsDir) throws IOException {
+    public void retrieveTables(String docsDir) throws IOException {
         File[] files = new File(docsDir).listFiles();
         if (files == null) {
             System.out.println("Empty or not found directory: " + docsDir);
@@ -56,64 +63,89 @@ public class Indexer {
         }
 
         for (File file : files) {
-            if (file.isFile() && file.getName().endsWith(".html")) {
-                indexHtmlDoc(file);
+            if (file.isFile() && file.getName().endsWith(".json")) {
+                ArrayList<Table> tableList = extractTablesFromJSON(file.getAbsolutePath());
+                for (Table table : tableList) {
+                    indexJsonTable(table);
+                }
             }
         }
     }
 
-    private void indexHtmlDoc(File file) {
+    private void indexJsonTable(Table table) {
         try {
-            // Parsing HTML file
-            org.jsoup.nodes.Document htmlDoc = Jsoup.parse(file, "UTF-8");
-
-            // Field extraction
-            String title = extractText(htmlDoc, "title");
-            String authors = extractText(htmlDoc, "span.ltx_personname");
-            String abstractText = extractAbstract(htmlDoc, "div.ltx_abstract");
-            String fullPaper = extractAllPaper(htmlDoc, "*");
-
-            //String title = "tile";
-            //String authors = "authors";
-            //String abstractText = "abstract";
-            //String fullPaper = "fullPaper";
 
             // Creating lucene document and adding fields
             Document luceneDoc = new Document();
-            luceneDoc.add(new TextField("title", title, Field.Store.YES));
-            luceneDoc.add(new TextField("authors", authors, Field.Store.YES));
-            luceneDoc.add(new TextField("abstract", abstractText, Field.Store.YES));
-            luceneDoc.add(new TextField("fullPaper", fullPaper, Field.Store.NO));
+            luceneDoc.add(new TextField("caption", table.getCaption(), Field.Store.YES));
+            luceneDoc.add(new TextField("table", table.getTable(), Field.Store.YES));
+            luceneDoc.add(new TextField("references", table.getReferences(), Field.Store.YES));
+            luceneDoc.add(new TextField("footnotes", table.getFootnotes(), Field.Store.YES));
 
             // Indexing new document
             writer.addDocument(luceneDoc);
-            System.out.println("Indexed: " + file.getName());
         } catch (IOException e) {
-            System.err.println("Error indexing file " + file.getName() + ": " + e.getMessage());
+            System.err.println("Error indexing table " + e.getMessage());
         }
     }
 
-    private String extractText(org.jsoup.nodes.Document htmlDoc, String selector) {
-        Element element = htmlDoc.selectFirst(selector);
-        return element != null ? element.ownText() : "";
-    }
 
-    private String extractAllPaper(org.jsoup.nodes.Document htmlDoc, String selector) {
-        Elements elements = htmlDoc.select(selector);
-        StringBuilder textBuilder = new StringBuilder();
-        for (Element element : elements) {
-            textBuilder.append(element.text()).append(" ");
+    /*public static List<String> extractDictionaryNames(String filePath) {
+        List<String> tableIDs = new ArrayList<>();
+
+        try (FileInputStream fis = new FileInputStream(filePath)) {
+            JSONObject jsonObject = new JSONObject(new JSONTokener(fis));
+            Iterator<String> keys = jsonObject.keys();
+
+            while (keys.hasNext()) {
+                String key = keys.next();
+                JSONObject nestedObject = jsonObject.optJSONObject(key);
+                if (nestedObject != null && containsRequiredKeys(nestedObject)) {
+                    tableIDs.add(key);
+                    Iterator<String> jsonFieldsKeys = nestedObject.keys();
+                    System.out.println(nestedObject.toString());
+                    System.out.println(nestedObject.get("references").toString());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        return textBuilder.toString().trim();
+        return tableIDs;
+    }*/
+
+    public static ArrayList<Table> extractTablesFromJSON(String filePath) {
+
+        ArrayList<Table> tableList = new ArrayList();
+
+        try (FileInputStream fis = new FileInputStream(filePath)) {
+            JSONObject jsonObject = new JSONObject(new JSONTokener(fis));
+            Iterator<String> keys = jsonObject.keys();
+
+            while (keys.hasNext()) {
+                String key = keys.next();
+                JSONObject nestedObject = jsonObject.optJSONObject(key);
+                if (nestedObject != null && containsRequiredKeys(nestedObject)) {
+                    Iterator<String> jsonFieldsKeys = nestedObject.keys();
+                    Table tableObj = new Table();
+                    tableObj.setReferences(nestedObject.get("references").toString());
+                    tableObj.setCaption(nestedObject.get("caption").toString());
+                    tableObj.setTable(nestedObject.get("table").toString());
+                    tableObj.setFootnotes(nestedObject.get("footnotes").toString());
+                    tableList.add(tableObj);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return tableList;
     }
 
-    private String extractAbstract(org.jsoup.nodes.Document htmlDoc, String selector) {
-        Element element = htmlDoc.selectFirst(selector+" > p");
-
-        return element != null ? element.text() : "";
+    private static boolean containsRequiredKeys(JSONObject jsonObject) {
+        return jsonObject.has("caption") && jsonObject.has("table") &&
+                jsonObject.has("footnotes") && jsonObject.has("references");
     }
-
 
 
 }
