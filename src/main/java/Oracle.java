@@ -1,4 +1,5 @@
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilterFactory;
@@ -21,6 +22,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -48,10 +50,10 @@ public class Oracle {
                 .addTokenFilter(WordDelimiterGraphFilterFactory.class)
                 .build();
         Map<String,Analyzer> perFieldAnalyzers = new HashMap<>();
-        perFieldAnalyzers.put("caption",whiteLowerAnalyzer);
+        /*perFieldAnalyzers.put("caption",whiteLowerAnalyzer);
         perFieldAnalyzers.put("table",whiteLowerAnalyzer);
         perFieldAnalyzers.put("references",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("footnotes",whiteLowerAnalyzer);
+        perFieldAnalyzers.put("footnotes",whiteLowerAnalyzer);*/
         perFieldAnalyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(),
                 perFieldAnalyzers);
         reader = DirectoryReader.open(dir);
@@ -60,7 +62,8 @@ public class Oracle {
         weights.put("table", 0.8f);
         weights.put("references", 0.6f);
         weights.put("footnotes", 0.4f);
-        parser = new MultiFieldQueryParser(fields, perFieldAnalyzer, weights);
+        CharArraySet stopWords = new CharArraySet(List.of("a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", "in", "is", "it", "its", "of", "on", "that", "the", "to", "was", "were", "will", "with"), true);
+        parser = new MultiFieldQueryParser(fields, new StandardAnalyzer(stopWords), weights);
     }
 
     public void executeUserQuery() throws ParseException, IOException {
@@ -138,6 +141,7 @@ public class Oracle {
 
             for (ScoreDoc scoreDoc : hits.scoreDocs) {
                 Document document = this.searcher.doc(scoreDoc.doc);
+                System.out.println(scoreDoc.score+"\n");
                 System.out.println("caption: " + document.get("caption") + "\n");
                 System.out.println("table: " + document.get("table") + "\n");
                 System.out.println("references: " + document.get("references") + "\n");

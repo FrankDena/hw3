@@ -1,4 +1,5 @@
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilterFactory;
@@ -38,11 +39,12 @@ public class Indexer {
                 .addTokenFilter(WordDelimiterGraphFilterFactory.class)
                 .build();
         Map<String,Analyzer> perFieldAnalyzers = new HashMap<>();
-        perFieldAnalyzers.put("caption",whiteLowerAnalyzer);
+        /*perFieldAnalyzers.put("caption",whiteLowerAnalyzer);
         perFieldAnalyzers.put("table",whiteLowerAnalyzer);
         perFieldAnalyzers.put("references",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("footnotes",whiteLowerAnalyzer);
-        Analyzer perFieldAnalyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(),
+        perFieldAnalyzers.put("footnotes",whiteLowerAnalyzer);*/
+        CharArraySet stopWords = new CharArraySet(List.of("a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", "in", "is", "it", "its", "of", "on", "that", "the", "to", "was", "were", "will", "with"), true);
+        Analyzer perFieldAnalyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(stopWords),
                 perFieldAnalyzers);
         IndexWriterConfig config = new IndexWriterConfig(perFieldAnalyzer);
         writer = new IndexWriter(dir, config);
@@ -130,7 +132,9 @@ public class Indexer {
                     Table tableObj = new Table();
                     tableObj.setReferences(nestedObject.get("references").toString());
                     tableObj.setCaption(nestedObject.get("caption").toString());
-                    tableObj.setTable(nestedObject.get("table").toString());
+                    String htmlTable = nestedObject.get("table").toString();
+                    String textTable = Jsoup.parse(htmlTable).text();
+                    tableObj.setTable(textTable);
                     tableObj.setFootnotes(nestedObject.get("footnotes").toString());
                     tableList.add(tableObj);
                 }
