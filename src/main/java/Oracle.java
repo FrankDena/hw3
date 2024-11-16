@@ -32,7 +32,7 @@ public class Oracle {
     Analyzer perFieldAnalyzer;
 
     Analyzer whiteLowerAnalyzer;
-    private String[] fields = {"title", "authors", "abstract", "fullPaper"};
+    private String[] fields = {"caption", "table", "references", "footnotes"};
     private Map<String, Float> weights = new HashMap<>();
     private MultiFieldQueryParser parser;
 
@@ -48,18 +48,18 @@ public class Oracle {
                 .addTokenFilter(WordDelimiterGraphFilterFactory.class)
                 .build();
         Map<String,Analyzer> perFieldAnalyzers = new HashMap<>();
-        perFieldAnalyzers.put("title",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("authors",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("abstract",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("fullPaper",new StandardAnalyzer());
+        perFieldAnalyzers.put("caption",whiteLowerAnalyzer);
+        perFieldAnalyzers.put("table",whiteLowerAnalyzer);
+        perFieldAnalyzers.put("references",whiteLowerAnalyzer);
+        perFieldAnalyzers.put("footnotes",whiteLowerAnalyzer);
         perFieldAnalyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(),
                 perFieldAnalyzers);
         reader = DirectoryReader.open(dir);
         searcher = new IndexSearcher(reader);
-        weights.put("title", 1.0f);
-        weights.put("authors", 0.8f);
-        weights.put("abstract", 0.6f);
-        weights.put("fullPaper", 0.4f);
+        weights.put("caption", 1.0f);
+        weights.put("table", 0.8f);
+        weights.put("references", 0.6f);
+        weights.put("footnotes", 0.4f);
         parser = new MultiFieldQueryParser(fields, perFieldAnalyzer, weights);
     }
 
@@ -90,10 +90,6 @@ public class Oracle {
             }
             System.out.println("Choose an option to run a query:\n" +
                     "[0] Run a general query, not on a specific field;\n" +
-                    "[1] Run a query on the TITLE of the documents;\n" +
-                    "[2] Run a query on the AUTHORS of the documents;\n" +
-                    "[3] Run a query on the ABSTRACT of the documents;\n" +
-                    "[4] Run a query on FULL PAPERS;\n" +
                     "[5] Exit the search engine.\n");
             System.out.println("Choice: ");
             if (scanner.hasNextInt()) {
@@ -101,22 +97,6 @@ public class Oracle {
                 if(option == 0) {
                     queriesMade = queriesMade + 1;
                     totalTime = totalTime.plus(executeGeneralQuery(numOfResults));
-                }
-                if(option == 1) {
-                    queriesMade = queriesMade + 1;
-                    totalTime = totalTime.plus(executeTitleQuery(numOfResults));
-                }
-                if(option == 2) {
-                    queriesMade = queriesMade + 1;
-                    totalTime = totalTime.plus(executeAuthorsQuery(numOfResults));
-                }
-                if(option == 3) {
-                    queriesMade = queriesMade + 1;
-                    totalTime = totalTime.plus(executeAbstractQuery(numOfResults));
-                }
-                if(option == 4) {
-                    queriesMade = queriesMade + 1;
-                    totalTime = totalTime.plus(executeFullPaperQuery(numOfResults));
                 }
                 if(option == 5) {
                     if (queriesMade != 0) {
@@ -135,182 +115,9 @@ public class Oracle {
         }
     }
 
-    private Duration executeFullPaperQuery(int numOfResults) {
-        Duration elapsedTime1 = Duration.ZERO;
-        try {
-
-            whiteLowerAnalyzer = CustomAnalyzer.builder()
-                    .withTokenizer("whitespace")
-                    .addTokenFilter("lowercase")
-                    .addTokenFilter(WordDelimiterGraphFilterFactory.class)
-                    .build();
-
-            //Initializing the parser (for the query on the single field)
-            QueryParser p = new QueryParser("fullPaper", whiteLowerAnalyzer);
-
-            //Read the user query
-            scanner = new Scanner(System.in);
-            System.out.println("Insert a query on the FULL PAPER: ");
-            String userInput = this.scanner.nextLine();
-            Query query = p.parse(userInput);
-
-            //Retrieve the result documents
-            Instant startQueryTime = Instant.now();
-            TopDocs hits = this.searcher.search(query, numOfResults);
-            Instant endQueryTime = Instant.now();
-            elapsedTime1 = Duration.between(startQueryTime, endQueryTime);
-            System.out.println("Found results: " + hits.totalHits.value + "\n" +
-                                "Elapsed time for the query: " + elapsedTime1.toMillis() + " milliseconds\n\n");
-            if(hits.totalHits.value == 0){
-                System.out.println("Results not found!\n");
-            }
-
-            //Print the results
-            for (ScoreDoc scoreDoc : hits.scoreDocs) {
-                Document document = this.searcher.doc(scoreDoc.doc);
-                System.out.println("Title of the paper in which body the query matched: " + document.get("title") + "\n");
-            }
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        return elapsedTime1;
-    }
-
-    private Duration executeAbstractQuery(int numOfResults) {
-        Duration elapsedTime2 = Duration.ZERO;
-        try {
-
-            whiteLowerAnalyzer = CustomAnalyzer.builder()
-                    .withTokenizer("whitespace")
-                    .addTokenFilter("lowercase")
-                    .addTokenFilter(WordDelimiterGraphFilterFactory.class)
-                    .build();
-
-            //Initializing the parser (for the query on the single field)
-            QueryParser p = new QueryParser("abstract", whiteLowerAnalyzer);
-
-            //Read the user query
-            scanner = new Scanner(System.in);
-            System.out.println("Insert a query on the ABSTRACT: ");
-            String userInput = this.scanner.nextLine();
-            Query query = p.parse(userInput);
-
-            //Retrieve the result documents
-            Instant startQueryTime = Instant.now();
-            TopDocs hits = this.searcher.search(query, numOfResults);
-            Instant endQueryTime = Instant.now();
-            elapsedTime2 = Duration.between(startQueryTime, endQueryTime);
-            System.out.println("Found results: " + hits.totalHits.value + "\n" +
-                    "Elapsed time for the query: " + elapsedTime2.toMillis() + " milliseconds\n\n");
-            if(hits.totalHits.value == 0){
-                System.out.println("Results not found!\n");
-            }
-
-
-            //Print the results
-            for (ScoreDoc scoreDoc : hits.scoreDocs) {
-                Document document = this.searcher.doc(scoreDoc.doc);
-                System.out.println("Title: " + document.get("title") + "\n");
-                System.out.println("Abstract: " + document.get("abstract") + "\n");
-            }
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        return elapsedTime2;
-    }
-
-    private Duration executeAuthorsQuery(int numOfResults) {
-        Duration elapsedTime3 = Duration.ZERO;
-        try {
-
-            whiteLowerAnalyzer = CustomAnalyzer.builder()
-                    .withTokenizer("whitespace")
-                    .addTokenFilter("lowercase")
-                    .addTokenFilter(WordDelimiterGraphFilterFactory.class)
-                    .build();
-
-            //Initializing the parser (for the query on the single field)
-            QueryParser p = new QueryParser("authors", whiteLowerAnalyzer);
-
-            //Read the user query
-            scanner = new Scanner(System.in);
-            System.out.println("Insert a query on the AUTHORS: ");
-            String userInput = this.scanner.nextLine();
-            Query query = p.parse(userInput);
-
-            //Retrieve the result documents
-            Instant startQueryTime = Instant.now();
-            TopDocs hits = this.searcher.search(query, numOfResults);
-            Instant endQueryTime = Instant.now();
-            elapsedTime3 = Duration.between(startQueryTime, endQueryTime);
-            System.out.println("Found results: " + hits.totalHits.value + "\n" +
-                    "Elapsed time for the query: " + elapsedTime3.toMillis() + " milliseconds\n\n");
-            if(hits.totalHits.value == 0){
-                System.out.println("Results not found!\n");
-            }
-
-
-            //Print the results
-            for (ScoreDoc scoreDoc : hits.scoreDocs) {
-                Document document = this.searcher.doc(scoreDoc.doc);
-                System.out.println("Title: " + document.get("title") + "\n");
-                System.out.println("Authors: " + document.get("authors") + "\n");
-            }
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        return elapsedTime3;
-    }
-
-    private Duration executeTitleQuery(int numOfResults) throws IOException{
-        Duration elapsedTime4 = Duration.ZERO;
-        try {
-
-            whiteLowerAnalyzer = CustomAnalyzer.builder()
-                    .withTokenizer("whitespace")
-                    .addTokenFilter("lowercase")
-                    .addTokenFilter(WordDelimiterGraphFilterFactory.class)
-                    .build();
-
-            //Initializing the parser (for the query on the single field)
-            QueryParser p = new QueryParser("title", whiteLowerAnalyzer);
-
-            //Read the user query
-            scanner = new Scanner(System.in);
-            System.out.println("Insert a query on the TITLE: ");
-            String userInput = this.scanner.nextLine();
-            Query query = p.parse(userInput);
-
-            //Retrieve the result documents
-            Instant startQueryTime = Instant.now();
-            TopDocs hits = this.searcher.search(query, numOfResults);
-            Instant endQueryTime = Instant.now();
-            elapsedTime4 = Duration.between(startQueryTime, endQueryTime);
-            System.out.println("Found results: " + hits.totalHits.value + "\n" +
-                    "Elapsed time for the query: " + elapsedTime4.toMillis() + " milliseconds\n\n");
-            if(hits.totalHits.value == 0){
-                System.out.println("Results not found!\n");
-            }
-
-
-            //Print the results
-            for (ScoreDoc scoreDoc : hits.scoreDocs) {
-                Document document = this.searcher.doc(scoreDoc.doc);
-                System.out.println("Title: " + document.get("title") + "\n");
-            }
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        return elapsedTime4;
-    }
 
     private Duration executeGeneralQuery(int numOfResults) throws ParseException, IOException {
         Duration elapsedTime5 = Duration.ZERO;
-        weights.put("title", 1.0f);
-        weights.put("authors", 0.8f);
-        weights.put("abstract", 0.6f);
-        weights.put("fullPaper", 0.4f);
-        parser = new MultiFieldQueryParser(fields, perFieldAnalyzer, weights);
         try {
             scanner = new Scanner(System.in);
             System.out.println("Insert a query: ");
@@ -331,9 +138,10 @@ public class Oracle {
 
             for (ScoreDoc scoreDoc : hits.scoreDocs) {
                 Document document = this.searcher.doc(scoreDoc.doc);
-                System.out.println("Title: " + document.get("title") + "\n");
-                System.out.println("Authors: " + document.get("authors") + "\n");
-                System.out.println("Abstract: " + document.get("abstract") + "\n");
+                System.out.println("caption: " + document.get("caption") + "\n");
+                System.out.println("table: " + document.get("table") + "\n");
+                System.out.println("references: " + document.get("references") + "\n");
+                System.out.println("footnotes: " + document.get("footnotes") + "\n");
             }
             //reader.close();
             //dir.close();

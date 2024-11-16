@@ -28,13 +28,13 @@ public class Lucenex {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        /*try {
+        try {
             Oracle oracle = new Oracle(idxPath);
             oracle.executeUserQuery();
             oracle.closeDirAndReader();
         } catch (Exception e) {
             e.printStackTrace();
-        }*/
+        }
     }
 
 
