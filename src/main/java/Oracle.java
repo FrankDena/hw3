@@ -67,17 +67,17 @@ public class Oracle {
     }
 
     public void executeUserQuery() throws ParseException, IOException {
-        int numOfResults = 10; //default is 10 results per search
+        int numOfResults = 5; //default is 10 results per search
         long queriesMade = 0;
         Duration totalTime = Duration.ZERO;
         System.out.println("Rules of the search engine: \n");
-        System.out.println("+word: word is mandatory");
-        System.out.println("-word: word is prohibited");
+        /*System.out.println("+word: word is mandatory");
+        System.out.println("-word: word is prohibited");*/
         System.out.println("word: word is optional");
         System.out.println("\"phrase\": phrase query\n");
         while(true) {
             int option;
-            scanner = new Scanner(System.in);
+            scanner = new Scanner(System.in);/*
             System.out.println("Choose the number of results you want to see at most: ");
             if (scanner.hasNextInt()) {
                 int input = scanner.nextInt();
@@ -90,25 +90,25 @@ public class Oracle {
             } else {
                 System.out.println("Insert an integer please!\n");
                 continue;
-            }
+            }*/
             System.out.println("Choose an option to run a query:\n" +
-                    "[0] Run a general query, not on a specific field;\n" +
-                    "[5] Exit the search engine.\n");
+                    "[1] Run a general query;\n" +
+                    "[0] Exit the search engine.\n");
             System.out.println("Choice: ");
             if (scanner.hasNextInt()) {
                 option = scanner.nextInt();
-                if(option == 0) {
+                if(option == 1) {
                     queriesMade = queriesMade + 1;
                     totalTime = totalTime.plus(executeGeneralQuery(numOfResults));
                 }
-                if(option == 5) {
+                if(option == 0) {
                     if (queriesMade != 0) {
                         System.out.println("\nTotal search time : " + totalTime.toMillis()+ " milliseconds\n" +
                                 "Number of queries: " + queriesMade + "\n" +
                                 "Mean search time: " + totalTime.dividedBy(queriesMade).toMillis() + " milliseconds\n\n");
                         break;
                     } else {
-                        System.out.println("You've successfully exited the search system");
+                        System.out.println("You've successfully exited the search engine!");
                     }
                     break;
                 }

@@ -67,8 +67,14 @@ public class Indexer {
         for (File file : files) {
             if (file.isFile() && file.getName().endsWith(".json")) {
                 ArrayList<Table> tableList = extractTablesFromJSON(file.getAbsolutePath());
-                for (Table table : tableList) {
-                    indexJsonTable(table);
+                if (tableList != null) {
+                    for (Table table : tableList) {
+                        if (table != null) {
+                            indexJsonTable(table);
+                        }
+                    }
+                } else {
+                    System.out.println("The JSON file " + file.getName() + " has no tables!\n");
                 }
             }
         }
@@ -77,7 +83,7 @@ public class Indexer {
     private void indexJsonTable(Table table) {
         try {
 
-            // Creating lucene document and adding fields
+            // Creating lucene document (for a Table object) and adding fields
             Document luceneDoc = new Document();
             luceneDoc.add(new TextField("caption", table.getCaption(), Field.Store.YES));
             luceneDoc.add(new TextField("table", table.getTable(), Field.Store.YES));
@@ -122,21 +128,28 @@ public class Indexer {
 
         try (FileInputStream fis = new FileInputStream(filePath)) {
             JSONObject jsonObject = new JSONObject(new JSONTokener(fis));
-            Iterator<String> keys = jsonObject.keys();
+            if (jsonObject.isEmpty()) { //controlling if the json file is empty
+                System.err.println("The JSON file " + new File(filePath).getName() + " is empty!\n");
+                return null;
+            } else {
+                Iterator<String> keys = jsonObject.keys();
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    JSONObject nestedObject = jsonObject.optJSONObject(key);
+                    if (nestedObject != null && containsRequiredKeys(nestedObject)) {
+                        Iterator<String> jsonFieldsKeys = nestedObject.keys();
+                        Table tableObj = new Table();
+                        tableObj.setReferences(nestedObject.get("references").toString());
+                        tableObj.setCaption(nestedObject.get("caption").toString());
+                        String htmlTable = nestedObject.get("table").toString();
+                        if(htmlTable.equals("null"))
+                            System.out.println("The field 'table' is null!\n");
+                        String textTable = Jsoup.parse(htmlTable).text();
+                        tableObj.setTable(textTable);
+                        tableObj.setFootnotes(nestedObject.get("footnotes").toString());
 
-            while (keys.hasNext()) {
-                String key = keys.next();
-                JSONObject nestedObject = jsonObject.optJSONObject(key);
-                if (nestedObject != null && containsRequiredKeys(nestedObject)) {
-                    Iterator<String> jsonFieldsKeys = nestedObject.keys();
-                    Table tableObj = new Table();
-                    tableObj.setReferences(nestedObject.get("references").toString());
-                    tableObj.setCaption(nestedObject.get("caption").toString());
-                    String htmlTable = nestedObject.get("table").toString();
-                    String textTable = Jsoup.parse(htmlTable).text();
-                    tableObj.setTable(textTable);
-                    tableObj.setFootnotes(nestedObject.get("footnotes").toString());
-                    tableList.add(tableObj);
+                        tableList.add(tableObj);
+                    }
                 }
             }
         } catch (IOException e) {
