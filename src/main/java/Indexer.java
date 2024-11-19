@@ -13,12 +13,14 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.json.JSONException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.io.File;
 import java.util.ArrayList;
@@ -50,8 +52,8 @@ public class Indexer {
                 perFieldAnalyzers);
         IndexWriterConfig config = new IndexWriterConfig(perFieldAnalyzer);
         writer = new IndexWriter(dir, config);
-        SimpleTextCodec codec = new SimpleTextCodec();
-        config.setCodec(codec);
+        //SimpleTextCodec codec = new SimpleTextCodec();
+        //config.setCodec(codec);
         writer.deleteAll();
     }
 
@@ -84,14 +86,12 @@ public class Indexer {
         for (File file : files) {
             if (file.isFile() && file.getName().endsWith(".json")) {
                 ArrayList<Table> tableList = extractTablesFromJSON(file.getAbsolutePath());
-                if (tableList != null) {
+                if (!tableList.isEmpty()) {
                     for (Table table : tableList) {
                         if (table != null) {
                             indexJsonTable(table);
                         }
                     }
-                } else {
-                    System.out.println("The JSON file " + file.getName() + " has no tables!\n");
                 }
             }
         }
@@ -144,11 +144,23 @@ public class Indexer {
         ArrayList<Table> tableList = new ArrayList();
 
         try (FileInputStream fis = new FileInputStream(filePath)) {
+            /*fis.mark(0);//mark the fis to reset it after reading the first 3 characters
+            String firstThreeChars = new String(fis.readNBytes(3), StandardCharsets.UTF_8);
+            System.out.println(firstThreeChars);
+            if (!firstThreeChars.startsWith("{")) {
+                System.err.println("The JSON file " + new File(filePath).getName() + " does not start with '{'!\n");
+                return tableList;
+            }
+            fis.reset();*/
             JSONObject jsonObject = new JSONObject(new JSONTokener(fis));
             if (jsonObject.isEmpty()) { //controlling if the json file is empty
                 System.err.println("The JSON file " + new File(filePath).getName() + " is empty!\n");
+                return tableList;
+            }
+            /*if (!jsonObject.toString().startsWith("{")) {
+                System.err.println("The JSON file " + new File(filePath).getName() + " does not start with '{'!\n");
                 return null;
-            } else {
+            }*/ else {
                 Iterator<String> keys = jsonObject.keys();
                 while (keys.hasNext()) {
                     String key = keys.next();
@@ -159,8 +171,6 @@ public class Indexer {
                         tableObj.setReferences(nestedObject.get("references").toString());
                         tableObj.setCaption(nestedObject.get("caption").toString());
                         String htmlTable = nestedObject.get("table").toString();
-                        if(htmlTable.equals("null"))
-                            System.out.println("The field 'table' is null!\n");
                         String textTable = Jsoup.parse(htmlTable).text();
                         tableObj.setTable(textTable);
                         tableObj.setFootnotes(nestedObject.get("footnotes").toString());
@@ -171,6 +181,8 @@ public class Indexer {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (JSONException e) {
+            System.err.println(e.getMessage());
         }
 
         return tableList;
