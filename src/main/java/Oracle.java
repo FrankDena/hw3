@@ -60,8 +60,8 @@ public class Oracle {
         searcher = new IndexSearcher(reader);
         weights.put("caption", 1.0f);
         weights.put("table", 0.8f);
-        weights.put("references", 0.6f);
-        weights.put("footnotes", 0.4f);
+        weights.put("references", 1.0f);
+        weights.put("footnotes", 0.6f);
         CharArraySet stopWords = new CharArraySet(List.of("a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", "in", "is", "it", "its", "of", "on", "that", "the", "to", "was", "were", "will", "with"), true);
         parser = new MultiFieldQueryParser(fields, new StandardAnalyzer(stopWords), weights);
     }
