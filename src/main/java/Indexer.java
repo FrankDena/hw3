@@ -1,5 +1,6 @@
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
+import org.apache.lucene.analysis.core.StopFilterFactory;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilterFactory;
@@ -33,24 +34,40 @@ public class Indexer {
     private IndexWriter writer;
     public Indexer(Path idxPath) throws IOException {
         Directory dir = FSDirectory.open(idxPath);
-        Analyzer whiteLowerAnalyzer = CustomAnalyzer.builder()
+        //List<String> stopWords = List.of("a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", "in", "is", "it", "its", "of", "on", "that", "the", "to", "was", "were", "will", "with");
+        Analyzer customAnalyzer = CustomAnalyzer.builder()
                 .withTokenizer("whitespace")
                 .addTokenFilter("lowercase")
-                .addTokenFilter(WordDelimiterGraphFilterFactory.class)
+                .addTokenFilter(WordDelimiterGraphFilterFactory.class, createWordDelimiterGraphOptions())
+                .addTokenFilter("stop")
                 .build();
         Map<String,Analyzer> perFieldAnalyzers = new HashMap<>();
-        /*perFieldAnalyzers.put("caption",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("table",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("references",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("footnotes",whiteLowerAnalyzer);*/
-        CharArraySet stopWords = new CharArraySet(List.of("a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", "in", "is", "it", "its", "of", "on", "that", "the", "to", "was", "were", "will", "with"), true);
-        Analyzer perFieldAnalyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(stopWords),
+        perFieldAnalyzers.put("caption",customAnalyzer);
+        perFieldAnalyzers.put("table",customAnalyzer);
+        perFieldAnalyzers.put("references",customAnalyzer);
+        perFieldAnalyzers.put("footnotes",customAnalyzer);
+        Analyzer perFieldAnalyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(),
                 perFieldAnalyzers);
         IndexWriterConfig config = new IndexWriterConfig(perFieldAnalyzer);
         writer = new IndexWriter(dir, config);
         SimpleTextCodec codec = new SimpleTextCodec();
         config.setCodec(codec);
         writer.deleteAll();
+    }
+
+    private static Map<String, String> createWordDelimiterGraphOptions() {
+        Map<String, String> options = new HashMap<>();
+        options.put("generateWordParts", "1");
+        options.put("generateNumberParts", "1");
+        options.put("catenateWords", "0");
+        options.put("catenateNumbers", "0");
+        options.put("catenateAll", "0");
+        options.put("splitOnCaseChange", "1");
+        options.put("preserveOriginal", "0");
+        options.put("splitOnNumerics", "0");         // Set to 0 to index "f1" as a full term
+        options.put("stemEnglishPossessive", "1");
+
+        return options;
     }
 
     public void commitAndClose() throws IOException {
