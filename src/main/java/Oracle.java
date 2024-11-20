@@ -122,7 +122,7 @@ public class Oracle {
         }
     }
 
-
+/*
     private Duration executeGeneralQuery(int numOfResults) throws ParseException, IOException {
         Duration elapsedTime5 = Duration.ZERO;
         try {
@@ -160,7 +160,7 @@ public class Oracle {
         }
         return elapsedTime5;
     }
-
+*/
     private Duration executeEmbeddedQuery(int numOfResults) throws ParseException, IOException {
         Duration elapsedTime5 = Duration.ZERO;
         try {
