@@ -168,17 +168,17 @@ public class Oracle {
             System.out.println("Insert a query: ");
             String userInput = scanner.nextLine(); // Read the user query
 
-            float[] queryVector = embeddingModel.embed(TextSegment.from("query text")).content().vector();
+            float[] queryVector = embeddingModel.embed(TextSegment.from(userInput)).content().vector();
 
             Query captionQuery = new KnnFloatVectorQuery("caption_embedding", queryVector, 10);
             Query tableQuery = new KnnFloatVectorQuery("table_embedding", queryVector, 10);
             Query referencesQuery = new KnnFloatVectorQuery("references_embedding", queryVector, 10);
             Query footnotesQuery = new KnnFloatVectorQuery("footnotes_embedding", queryVector, 10);
 
-            Query weightedCaptionQuery = new BoostQuery(captionQuery, 1.0f);
-            Query weightedTableQuery = new BoostQuery(tableQuery, 0.8f);
-            Query weightedReferencesQuery = new BoostQuery(referencesQuery, 1.0f);
-            Query weightedFootnotesQuery = new BoostQuery(footnotesQuery, 0.6f);
+            Query weightedCaptionQuery = new BoostQuery(captionQuery, 2.0f);
+            Query weightedTableQuery = new BoostQuery(tableQuery, 1.5f);
+            Query weightedReferencesQuery = new BoostQuery(referencesQuery, 2.0f);
+            Query weightedFootnotesQuery = new BoostQuery(footnotesQuery, 0.8f);
 
             BooleanQuery combinedQuery = new BooleanQuery.Builder()
                     .add(weightedCaptionQuery, BooleanClause.Occur.SHOULD)
@@ -203,6 +203,8 @@ public class Oracle {
                 ScoreDoc scoreDoc = hits.scoreDocs[i];
                 Document document = storedFields.document(scoreDoc.doc);
                 System.out.println(scoreDoc.score+"\n");
+                Explanation explanation = searcher.explain(combinedQuery, scoreDoc.doc);
+                System.out.println(explanation);
                 System.out.println("caption: " + document.get("caption") + "\n");
                 System.out.println("table: " + document.get("table") + "\n");
                 System.out.println("references: " + document.get("references") + "\n");
