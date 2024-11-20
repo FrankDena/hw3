@@ -11,7 +11,7 @@ public class Lucenex {
     public static void main(String[] args) throws IOException {
         Path projectDir = Paths.get("").toAbsolutePath();
         Path idxPath = projectDir.resolve("lucene-idx");
-        String docsDir = "all_tables";
+        String docsDir = "test_tables";
         //List<String> tableIds = Indexer.extractDictionaryNames("all_tables/0905.1755.json");
         //ArrayList tableList = Indexer.extractTablesFromJSON("all_tables/0905.1755.json");
         //System.out.println(tableList);

@@ -5,6 +5,7 @@ import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilterFactory;
 import org.apache.lucene.codecs.simpletext.SimpleTextCodec;
+import org.apache.lucene.document.KnnFloatVectorField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -31,9 +32,17 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import java.util.Iterator;
 
+import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
+
 
 public class Indexer {
     private IndexWriter writer;
+
+    private EmbeddingModel embeddingModel;
+
     public Indexer(Path idxPath) throws IOException {
         Directory dir = FSDirectory.open(idxPath);
         //List<String> stopWords = List.of("a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", "in", "is", "it", "its", "of", "on", "that", "the", "to", "was", "were", "will", "with");
@@ -52,9 +61,10 @@ public class Indexer {
                 perFieldAnalyzers);
         IndexWriterConfig config = new IndexWriterConfig(perFieldAnalyzer);
         writer = new IndexWriter(dir, config);
-        //SimpleTextCodec codec = new SimpleTextCodec();
-        //config.setCodec(codec);
+        SimpleTextCodec codec = new SimpleTextCodec();
+        config.setCodec(codec);
         writer.deleteAll();
+        embeddingModel = new AllMiniLmL6V2EmbeddingModel();
     }
 
     private static Map<String, String> createWordDelimiterGraphOptions() {
@@ -97,15 +107,32 @@ public class Indexer {
         }
     }
 
+    private float[] createStringEmbedding(String text) {
+        try {
+            if (text == null || text.isEmpty()) {
+                return new float[384];
+            }
+            TextSegment textSegment = TextSegment.from(text);
+            return embeddingModel.embed(textSegment).content().vector();
+        } catch (Exception e) {
+            System.err.println("Error creating embedding for text: " + text + " " + e.getMessage());
+            return new float[384];
+        }
+    }
+
     private void indexJsonTable(Table table) {
         try {
 
             // Creating lucene document (for a Table object) and adding fields
             Document luceneDoc = new Document();
             luceneDoc.add(new TextField("caption", table.getCaption(), Field.Store.YES));
+            luceneDoc.add(new KnnFloatVectorField("caption_embedding", createStringEmbedding(table.getCaption())));
             luceneDoc.add(new TextField("table", table.getTable(), Field.Store.YES));
+            luceneDoc.add(new KnnFloatVectorField("table_embedding", createStringEmbedding(table.getTable())));
             luceneDoc.add(new TextField("references", table.getReferences(), Field.Store.YES));
+            luceneDoc.add(new KnnFloatVectorField("references_embedding", createStringEmbedding(table.getReferences())));
             luceneDoc.add(new TextField("footnotes", table.getFootnotes(), Field.Store.YES));
+            luceneDoc.add(new KnnFloatVectorField("footnotes_embedding", createStringEmbedding(table.getFootnotes())));
 
             // Indexing new document
             writer.addDocument(luceneDoc);

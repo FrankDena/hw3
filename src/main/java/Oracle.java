@@ -1,3 +1,6 @@
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
@@ -7,13 +10,11 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.StoredFields;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
@@ -32,6 +33,8 @@ public class Oracle {
     private IndexReader reader;
 
     Analyzer perFieldAnalyzer;
+
+    private EmbeddingModel embeddingModel;
 
     Analyzer whiteLowerAnalyzer;
     private String[] fields = {"caption", "table", "references", "footnotes"};
@@ -64,6 +67,7 @@ public class Oracle {
         weights.put("footnotes", 0.6f);
         CharArraySet stopWords = new CharArraySet(List.of("a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", "in", "is", "it", "its", "of", "on", "that", "the", "to", "was", "were", "will", "with"), true);
         parser = new MultiFieldQueryParser(fields, new StandardAnalyzer(stopWords), weights);
+        embeddingModel = new AllMiniLmL6V2EmbeddingModel();
     }
 
     public void executeUserQuery() throws ParseException, IOException {
@@ -99,7 +103,7 @@ public class Oracle {
                 option = scanner.nextInt();
                 if(option == 1) {
                     queriesMade = queriesMade + 1;
-                    totalTime = totalTime.plus(executeGeneralQuery(numOfResults));
+                    totalTime = totalTime.plus(executeEmbeddedQuery(numOfResults));
                 }
                 if(option == 0) {
                     if (queriesMade != 0) {
@@ -132,15 +136,72 @@ public class Oracle {
             TopDocs hits = this.searcher.search(query, numOfResults);
             Instant endQueryTime = Instant.now();
             elapsedTime5 = Duration.between(startQueryTime, endQueryTime);
-            System.out.println("Found results: " + hits.totalHits.value + "\n" +
+            StoredFields storedFields = searcher.storedFields();
+            System.out.println("Found results: " + hits.scoreDocs.length + "\n" +
                     "Elapsed time for the query: " + elapsedTime5.toMillis() + " milliseconds\n\n");
-            if(hits.totalHits.value == 0){
+            if(hits.scoreDocs.length == 0){
                 System.out.println("Results not found!\n");
             }
 
 
-            for (ScoreDoc scoreDoc : hits.scoreDocs) {
-                Document document = this.searcher.doc(scoreDoc.doc);
+            for (int i = 0; i < hits.scoreDocs.length; i++) {
+                ScoreDoc scoreDoc = hits.scoreDocs[i];
+                Document document = storedFields.document(scoreDoc.doc);
+                System.out.println(scoreDoc.score+"\n");
+                System.out.println("caption: " + document.get("caption") + "\n");
+                System.out.println("table: " + document.get("table") + "\n");
+                System.out.println("references: " + document.get("references") + "\n");
+                System.out.println("footnotes: " + document.get("footnotes") + "\n");
+            }
+            //reader.close();
+            //dir.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return elapsedTime5;
+    }
+
+    private Duration executeEmbeddedQuery(int numOfResults) throws ParseException, IOException {
+        Duration elapsedTime5 = Duration.ZERO;
+        try {
+            scanner = new Scanner(System.in);
+            System.out.println("Insert a query: ");
+            String userInput = scanner.nextLine(); // Read the user query
+
+            float[] queryVector = embeddingModel.embed(TextSegment.from("query text")).content().vector();
+
+            Query captionQuery = new KnnFloatVectorQuery("caption_embedding", queryVector, 10);
+            Query tableQuery = new KnnFloatVectorQuery("table_embedding", queryVector, 10);
+            Query referencesQuery = new KnnFloatVectorQuery("references_embedding", queryVector, 10);
+            Query footnotesQuery = new KnnFloatVectorQuery("footnotes_embedding", queryVector, 10);
+
+            Query weightedCaptionQuery = new BoostQuery(captionQuery, 1.0f);
+            Query weightedTableQuery = new BoostQuery(tableQuery, 0.8f);
+            Query weightedReferencesQuery = new BoostQuery(referencesQuery, 1.0f);
+            Query weightedFootnotesQuery = new BoostQuery(footnotesQuery, 0.6f);
+
+            BooleanQuery combinedQuery = new BooleanQuery.Builder()
+                    .add(weightedCaptionQuery, BooleanClause.Occur.SHOULD)
+                    .add(weightedTableQuery, BooleanClause.Occur.SHOULD)
+                    .add(weightedReferencesQuery, BooleanClause.Occur.SHOULD)
+                    .add(weightedFootnotesQuery, BooleanClause.Occur.SHOULD)
+                    .build();
+
+            Instant startQueryTime = Instant.now();
+            TopDocs hits = this.searcher.search(combinedQuery, numOfResults);
+            Instant endQueryTime = Instant.now();
+            elapsedTime5 = Duration.between(startQueryTime, endQueryTime);
+            StoredFields storedFields = searcher.storedFields();
+            System.out.println("Found results: " + hits.scoreDocs.length + "\n" +
+                    "Elapsed time for the query: " + elapsedTime5.toMillis() + " milliseconds\n\n");
+            if(hits.scoreDocs.length == 0){
+                System.out.println("Results not found!\n");
+            }
+
+
+            for (int i = 0; i < hits.scoreDocs.length; i++) {
+                ScoreDoc scoreDoc = hits.scoreDocs[i];
+                Document document = storedFields.document(scoreDoc.doc);
                 System.out.println(scoreDoc.score+"\n");
                 System.out.println("caption: " + document.get("caption") + "\n");
                 System.out.println("table: " + document.get("table") + "\n");
