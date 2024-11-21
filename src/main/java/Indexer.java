@@ -50,7 +50,8 @@ public class Indexer {
         perFieldAnalyzers.put("footnotes",customAnalyzer);
         Analyzer perFieldAnalyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(),
                 perFieldAnalyzers);
-        IndexWriterConfig config = new IndexWriterConfig(perFieldAnalyzer);
+        CharArraySet stopWords = new CharArraySet(List.of("a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", "in", "is", "it", "its", "of", "on", "that", "the", "to", "was", "were", "will", "with"), true);
+        IndexWriterConfig config = new IndexWriterConfig(new StandardAnalyzer(stopWords));
         writer = new IndexWriter(dir, config);
         //SimpleTextCodec codec = new SimpleTextCodec();
         //config.setCodec(codec);

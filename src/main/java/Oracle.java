@@ -44,26 +44,42 @@ public class Oracle {
 
     public Oracle(Path idxPath) throws IOException {
         dir = FSDirectory.open(idxPath);
-        whiteLowerAnalyzer = CustomAnalyzer.builder()
+        Analyzer customAnalyzer = CustomAnalyzer.builder()
                 .withTokenizer("whitespace")
                 .addTokenFilter("lowercase")
-                .addTokenFilter(WordDelimiterGraphFilterFactory.class)
+                .addTokenFilter(WordDelimiterGraphFilterFactory.class, createWordDelimiterGraphOptions())
+                .addTokenFilter("stop")
                 .build();
         Map<String,Analyzer> perFieldAnalyzers = new HashMap<>();
-        /*perFieldAnalyzers.put("caption",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("table",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("references",whiteLowerAnalyzer);
-        perFieldAnalyzers.put("footnotes",whiteLowerAnalyzer);*/
-        perFieldAnalyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(),
+        perFieldAnalyzers.put("caption",customAnalyzer);
+        perFieldAnalyzers.put("table",customAnalyzer);
+        perFieldAnalyzers.put("references",customAnalyzer);
+        perFieldAnalyzers.put("footnotes",customAnalyzer);
+        Analyzer perFieldAnalyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(),
                 perFieldAnalyzers);
         reader = DirectoryReader.open(dir);
         searcher = new IndexSearcher(reader);
         weights.put("caption", 1.0f);
         weights.put("table", 0.8f);
-        weights.put("references", 1.0f);
-        weights.put("footnotes", 0.6f);
+        weights.put("references", 0.6f);
+        weights.put("footnotes", 0.4f);
         CharArraySet stopWords = new CharArraySet(List.of("a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", "in", "is", "it", "its", "of", "on", "that", "the", "to", "was", "were", "will", "with"), true);
         parser = new MultiFieldQueryParser(fields, new StandardAnalyzer(stopWords), weights);
+    }
+
+    private static Map<String, String> createWordDelimiterGraphOptions() {
+        Map<String, String> options = new HashMap<>();
+        options.put("generateWordParts", "1");
+        options.put("generateNumberParts", "1");
+        options.put("catenateWords", "0");
+        options.put("catenateNumbers", "0");
+        options.put("catenateAll", "0");
+        options.put("splitOnCaseChange", "1");
+        options.put("preserveOriginal", "0");
+        options.put("splitOnNumerics", "0");         // Set to 0 to index "f1" as a full term
+        options.put("stemEnglishPossessive", "1");
+
+        return options;
     }
 
     public void executeUserQuery() throws ParseException, IOException {
