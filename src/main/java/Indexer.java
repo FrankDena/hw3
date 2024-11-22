@@ -61,8 +61,8 @@ public class Indexer {
                 perFieldAnalyzers);
         IndexWriterConfig config = new IndexWriterConfig(perFieldAnalyzer);
         writer = new IndexWriter(dir, config);
-        SimpleTextCodec codec = new SimpleTextCodec();
-        config.setCodec(codec);
+        //SimpleTextCodec codec = new SimpleTextCodec();
+        //config.setCodec(codec);
         writer.deleteAll();
         embeddingModel = new AllMiniLmL6V2EmbeddingModel();
     }
