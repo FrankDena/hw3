@@ -126,13 +126,21 @@ public class Indexer {
             // Creating lucene document (for a Table object) and adding fields
             Document luceneDoc = new Document();
             luceneDoc.add(new TextField("caption", table.getCaption(), Field.Store.YES));
-            luceneDoc.add(new KnnFloatVectorField("caption_embedding", createStringEmbedding(table.getCaption())));
+            if (table.getCaption()!=null && !table.getCaption().isEmpty()) {
+                luceneDoc.add(new KnnFloatVectorField("caption_embedding", createStringEmbedding(table.getCaption())));
+            }
             luceneDoc.add(new TextField("table", table.getTable(), Field.Store.YES));
-            luceneDoc.add(new KnnFloatVectorField("table_embedding", createStringEmbedding(table.getTable())));
+            if (table.getTable()!=null && !table.getTable().isEmpty()) {
+                luceneDoc.add(new KnnFloatVectorField("table_embedding", createStringEmbedding(table.getTable())));
+            }
             luceneDoc.add(new TextField("references", table.getReferences(), Field.Store.YES));
-            luceneDoc.add(new KnnFloatVectorField("references_embedding", createStringEmbedding(table.getReferences())));
+            if (table.getReferences()!=null && !table.getReferences().isEmpty()) {
+                luceneDoc.add(new KnnFloatVectorField("references_embedding", createStringEmbedding(table.getReferences())));
+            }
             luceneDoc.add(new TextField("footnotes", table.getFootnotes(), Field.Store.YES));
-            luceneDoc.add(new KnnFloatVectorField("footnotes_embedding", createStringEmbedding(table.getFootnotes())));
+            if (table.getFootnotes()!=null && !table.getFootnotes().isEmpty()) {
+                luceneDoc.add(new KnnFloatVectorField("footnotes_embedding", createStringEmbedding(table.getFootnotes())));
+            }
 
             // Indexing new document
             writer.addDocument(luceneDoc);
