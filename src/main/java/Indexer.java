@@ -1,3 +1,4 @@
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.core.StopFilterFactory;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +38,7 @@ import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.OnnxEmbeddingModel;
 
 
 public class Indexer {
@@ -64,7 +67,8 @@ public class Indexer {
         //SimpleTextCodec codec = new SimpleTextCodec();
         //config.setCodec(codec);
         writer.deleteAll();
-        embeddingModel = new AllMiniLmL6V2EmbeddingModel();
+        //embeddingModel = new AllMiniLmL6V2EmbeddingModel();
+        embeddingModel = new OnnxEmbeddingModel(Paths.get("model_quantized.onnx"));
     }
 
     private static Map<String, String> createWordDelimiterGraphOptions() {
@@ -130,7 +134,7 @@ public class Indexer {
                 luceneDoc.add(new KnnFloatVectorField("caption_embedding", createStringEmbedding(table.getCaption())));
             }
             luceneDoc.add(new TextField("table", table.getTable(), Field.Store.YES));
-            if (table.getTable()!=null && !table.getTable().isEmpty()) {
+            if (table.getTable()!=null && !table.getTable().isEmpty() && !table.getTable().equals("null")) {
                 luceneDoc.add(new KnnFloatVectorField("table_embedding", createStringEmbedding(table.getTable())));
             }
             luceneDoc.add(new TextField("references", table.getReferences(), Field.Store.YES));
@@ -203,12 +207,15 @@ public class Indexer {
                     if (nestedObject != null && containsRequiredKeys(nestedObject)) {
                         Iterator<String> jsonFieldsKeys = nestedObject.keys();
                         Table tableObj = new Table();
-                        tableObj.setReferences(nestedObject.get("references").toString());
+                        tableObj.setReferences((nestedObject.get("references").toString()).replaceAll("\\[", "").replaceAll("\\]", "").replaceAll("\\b(\\w+?)subscript\\S*", "$1"));
                         tableObj.setCaption(nestedObject.get("caption").toString());
                         String htmlTable = nestedObject.get("table").toString();
                         String textTable = Jsoup.parse(htmlTable).text();
-                        tableObj.setTable(textTable);
-                        tableObj.setFootnotes(nestedObject.get("footnotes").toString());
+                        tableObj.setTable(textTable.replaceAll("\\b(\\w+?)subscript\\S*", "$1")
+                                .replaceAll("\\b(\\w+?)superscript\\S*", "$1")
+                                .replaceAll("[^\\p{L}\\p{N}\\s]", "")
+                                .replaceAll("\\s+", " ").trim());
+                        tableObj.setFootnotes((nestedObject.get("footnotes").toString()).replaceAll("\\[", "").replaceAll("\\]", ""));
 
                         tableList.add(tableObj);
                     }

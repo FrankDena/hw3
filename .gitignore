@@ -41,3 +41,4 @@ build/
 /final-idx
 /all_tables
 /idx-test
+model_quantized.onnx

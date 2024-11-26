@@ -1,5 +1,6 @@
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.OnnxEmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
@@ -20,6 +21,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -67,7 +69,8 @@ public class Oracle {
         weights.put("footnotes", 0.6f);
         CharArraySet stopWords = new CharArraySet(List.of("a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "he", "in", "is", "it", "its", "of", "on", "that", "the", "to", "was", "were", "will", "with"), true);
         parser = new MultiFieldQueryParser(fields, new StandardAnalyzer(stopWords), weights);
-        embeddingModel = new AllMiniLmL6V2EmbeddingModel();
+        //embeddingModel = new AllMiniLmL6V2EmbeddingModel();
+        embeddingModel = new OnnxEmbeddingModel(Paths.get("model_quantized.onnx"));
     }
 
     public void executeUserQuery() throws ParseException, IOException {
